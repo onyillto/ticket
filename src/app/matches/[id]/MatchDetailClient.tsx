@@ -41,6 +41,7 @@ export default function MatchDetailClient({ match }: Props) {
     if (!validateForm()) return;
     const ticket = {
       id: `TKT-${Date.now()}`,
+      matchNumber: `M${Math.floor(537400 + Math.random() * 200)}`,
       matchId: match.id,
       match,
       category,

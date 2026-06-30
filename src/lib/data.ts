@@ -24,6 +24,7 @@ export interface Match {
 
 export interface Ticket {
   id: string;
+  matchNumber: string;
   matchId: string;
   match: Match;
   category: 1 | 2 | 3 | 4;
