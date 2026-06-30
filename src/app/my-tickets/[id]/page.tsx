@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
-  ChevronLeft, MapPin, Lock, MoreHorizontal, Accessibility,
+  ChevronLeft, MapPin, Lock, ChevronDown,
+  Send, RefreshCw, Accessibility,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { Ticket } from "@/lib/data";
@@ -11,26 +12,18 @@ import { getTicketById } from "@/lib/store";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function getMatchDateTime(date: string, time: string): Date {
-  const [h, m] = time.split(":").map(Number);
-  const dt = new Date(date);
-  dt.setHours(h, m, 0, 0);
-  return dt;
-}
-
 function isQrVisible(date: string, time: string): boolean {
-  const kickoff = getMatchDateTime(date, time);
-  const now = new Date();
-  const diffHours = (kickoff.getTime() - now.getTime()) / 3_600_000;
-  // show if within 2 hours before kickoff, or match has already started/finished (up to 3h after)
+  const [h, m] = time.split(":").map(Number);
+  const kickoff = new Date(date);
+  kickoff.setHours(h, m, 0, 0);
+  const diffHours = (kickoff.getTime() - Date.now()) / 3_600_000;
   return diffHours <= 2;
 }
 
-function isPast(date: string): boolean {
+function isPast(date: string) {
   return new Date(date) < new Date();
 }
 
-// Derive seat grid info from ticket + seat string
 function getSeatGrid(ticket: Ticket, seatStr: string) {
   const row = seatStr.replace(/\d/g, "");
   const seatNum = seatStr.replace(/\D/g, "");
@@ -81,10 +74,7 @@ function getSeatGrid(ticket: Ticket, seatStr: string) {
         { label: "BLOCK", value: String(400 + (parseInt(seatNum) % 40)) },
         { label: "GATE", value: gate },
       ],
-      [
-        { label: "ROW", value: row },
-        { label: "SEAT", value: seatNum },
-      ],
+      [{ label: "ROW", value: row }, { label: "SEAT", value: seatNum }],
     ],
     category: ticket.category === 3 ? "Category 3 — Standard" : "Category 4 — Supporter",
   };
@@ -98,6 +88,7 @@ export default function TicketDetailPage() {
   const [ticket, setTicket] = useState<Ticket | null>(null);
   const [seatIdx, setSeatIdx] = useState(0);
   const [qrVisible, setQrVisible] = useState(false);
+  const [fabOpen, setFabOpen] = useState(false);
 
   useEffect(() => {
     const t = getTicketById(id);
@@ -106,12 +97,9 @@ export default function TicketDetailPage() {
     setQrVisible(isQrVisible(t.match.date, t.match.time));
   }, [id, router]);
 
-  // Recheck QR visibility every 30s
   useEffect(() => {
     if (!ticket) return;
-    const iv = setInterval(() => {
-      setQrVisible(isQrVisible(ticket.match.date, ticket.match.time));
-    }, 30_000);
+    const iv = setInterval(() => setQrVisible(isQrVisible(ticket.match.date, ticket.match.time)), 30_000);
     return () => clearInterval(iv);
   }, [ticket]);
 
@@ -126,14 +114,19 @@ export default function TicketDetailPage() {
   const dateStr = `${d.getDate()} ${d.toLocaleDateString("en-US", { month: "short" }).toUpperCase()} 26, ${match.time}`;
 
   return (
-    <div className="min-h-screen bg-[#f2f2f7] pb-32">
+    <div className="min-h-screen bg-[#f2f2f7] pb-32 relative">
+
+      {/* ── Dim overlay when FAB is open ── */}
+      {fabOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-30"
+          onClick={() => setFabOpen(false)}
+        />
+      )}
 
       {/* ── Header ── */}
       <div className="relative flex flex-col items-center pt-5 pb-3 bg-[#f2f2f7]">
-        <button
-          onClick={() => router.back()}
-          className="absolute left-4 top-5 text-gray-800"
-        >
+        <button onClick={() => router.back()} className="absolute left-4 top-5 text-gray-800">
           <ChevronLeft size={26} strokeWidth={2.5} />
         </button>
         <p className="font-bold text-gray-900 text-[0.95rem]">
@@ -154,13 +147,11 @@ export default function TicketDetailPage() {
         )}
       </div>
 
-      {/* ── QR Code section ── */}
+      {/* ── QR Code ── */}
       <div className="mx-4 mb-4">
         {qrVisible || matchPast ? (
           <div className="flex rounded-2xl overflow-hidden shadow-sm bg-white">
-            {/* Teal left bar */}
             <div className="w-4 shrink-0" style={{ background: "#00c9a7" }} />
-            {/* QR */}
             <div className="flex-1 flex flex-col items-center justify-center py-6 relative">
               <QRCodeSVG
                 value={`FIFA-WC2026-${ticket.id}-SEAT${currentSeat}`}
@@ -176,7 +167,6 @@ export default function TicketDetailPage() {
                 </div>
               )}
             </div>
-            {/* Teal right bar */}
             <div className="w-4 shrink-0" style={{ background: "#00c9a7" }} />
           </div>
         ) : (
@@ -199,47 +189,39 @@ export default function TicketDetailPage() {
 
       {/* ── Ticket card ── */}
       <div className="mx-4 bg-white rounded-2xl shadow-sm overflow-hidden">
-
-        {/* FIFA branding + accessibility */}
         <div className="relative px-5 pt-5 pb-2 text-center">
           <div className="absolute top-4 left-4">
             <Accessibility size={18} className="text-gray-400" />
           </div>
-          <p className="font-black text-[1.05rem] leading-tight tracking-tight text-gray-900">FIFA</p>
-          <p className="font-black text-[1.05rem] leading-tight tracking-tight text-gray-900">WORLD CUP</p>
-          <p className="font-black text-[1.05rem] leading-tight tracking-tight text-gray-900">2026™</p>
+          <p className="font-black text-[1.05rem] leading-tight text-gray-900">FIFA</p>
+          <p className="font-black text-[1.05rem] leading-tight text-gray-900">WORLD CUP</p>
+          <p className="font-black text-[1.05rem] leading-tight text-gray-900">2026™</p>
         </div>
 
-        {/* Match name */}
         <div className="px-5 pt-2 pb-3 text-center">
           <h2 className="text-[1.5rem] font-black text-gray-900 leading-tight">
             {match.homeTeam} vs {match.awayTeam}
           </h2>
         </div>
 
-        {/* Date + venue */}
         <div className="px-5 pb-4 space-y-1.5 text-center">
           <div className="flex items-center justify-center gap-1.5 text-gray-600 text-[0.85rem]">
-            <span className="text-sm">📅</span>
+            <span>📅</span>
             <span className="font-medium">{dateStr}</span>
           </div>
           <div className="flex items-center justify-center gap-1.5 text-gray-600 text-[0.85rem]">
-            <MapPin size={13} className="shrink-0" />
+            <MapPin size={13} />
             <span className="font-medium">{match.venue}</span>
           </div>
         </div>
 
-        {/* Seat info grid */}
+        {/* Seat grid */}
         <div className="px-4 pb-4 space-y-2">
           {grid.rows.map((row, ri) => (
             <div
               key={ri}
               className={`grid gap-2 ${
-                row.length === 1
-                  ? "grid-cols-3"
-                  : row.length === 2
-                  ? "grid-cols-2"
-                  : "grid-cols-3"
+                row.length === 1 ? "grid-cols-3" : row.length === 2 ? "grid-cols-2" : "grid-cols-3"
               }`}
             >
               {row.length === 1 ? (
@@ -249,9 +231,7 @@ export default function TicketDetailPage() {
                   <div />
                 </>
               ) : (
-                row.map((cell, ci) => (
-                  <SeatCell key={ci} label={cell.label} value={cell.value} />
-                ))
+                row.map((cell, ci) => <SeatCell key={ci} label={cell.label} value={cell.value} />)
               )}
             </div>
           ))}
@@ -259,14 +239,13 @@ export default function TicketDetailPage() {
 
         {/* Dotted separator */}
         <div
-          className="mx-4 my-1 border-0 h-px"
+          className="mx-4 my-1 h-px"
           style={{
             backgroundImage:
-              "repeating-linear-gradient(to right, #d1d5db 0, #d1d5db 6px, transparent 6px, transparent 12px)",
+              "repeating-linear-gradient(to right,#d1d5db 0,#d1d5db 6px,transparent 6px,transparent 12px)",
           }}
         />
 
-        {/* Ticket category row */}
         <div className="px-5 py-4 flex items-center justify-between">
           <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
             Ticket Category
@@ -275,16 +254,49 @@ export default function TicketDetailPage() {
             {grid.category}
           </p>
         </div>
-
       </div>
 
-      {/* Floating action button */}
-      <button
-        className="fixed bottom-24 right-4 w-12 h-12 rounded-full flex items-center justify-center shadow-lg z-40"
-        style={{ background: "#4f8ef7" }}
-      >
-        <MoreHorizontal size={22} className="text-white" />
-      </button>
+      {/* ── Expandable FAB ── */}
+      <div className="fixed bottom-24 right-4 flex flex-col items-end gap-2.5 z-40">
+        {fabOpen && (
+          <>
+            {/* Send action */}
+            <button
+              onClick={() => {
+                setFabOpen(false);
+                router.push(`/my-tickets/${id}/send`);
+              }}
+              className="flex items-center gap-2 text-white font-bold text-sm px-5 py-3 rounded-full shadow-lg"
+              style={{ background: "#4f8ef7" }}
+            >
+              <Send size={15} />
+              Send
+            </button>
+
+            {/* Resale/Exchange action */}
+            <button
+              onClick={() => setFabOpen(false)}
+              className="flex items-center gap-2 text-white font-bold text-sm px-5 py-3 rounded-full shadow-lg"
+              style={{ background: "#4f8ef7" }}
+            >
+              <RefreshCw size={15} />
+              Resale/Exchange
+            </button>
+          </>
+        )}
+
+        {/* FAB toggle button */}
+        <button
+          onClick={() => setFabOpen((v) => !v)}
+          className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-transform"
+          style={{ background: "#4f8ef7" }}
+        >
+          <ChevronDown
+            size={22}
+            className={`text-white transition-transform duration-200 ${fabOpen ? "rotate-180" : ""}`}
+          />
+        </button>
+      </div>
 
     </div>
   );
@@ -298,11 +310,7 @@ function SeatCell({ label, value }: { label: string; value: string }) {
       <p className="text-[9px] font-black text-[#6b9aff] uppercase tracking-wider leading-none mb-1">
         {label}
       </p>
-      <p
-        className={`font-black text-gray-900 leading-none ${
-          value.length > 4 ? "text-base" : "text-[1.5rem]"
-        }`}
-      >
+      <p className={`font-black text-gray-900 leading-none ${value.length > 4 ? "text-base" : "text-[1.5rem]"}`}>
         {value}
       </p>
     </div>

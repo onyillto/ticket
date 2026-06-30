@@ -6,8 +6,18 @@ import BottomNav from "@/components/BottomNav";
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
 
 export const metadata: Metadata = {
-  title: "FIFA World Cup 2026™ Tickets",
-  description: "Official ticket platform for FIFA World Cup 2026 — USA, Canada & Mexico",
+  title: "FWC2026 Mobile Tickets",
+  description: "FIFA World Cup 2026 official mobile ticket wallet",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "FWC Tickets",
+  },
+  icons: {
+    icon: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
