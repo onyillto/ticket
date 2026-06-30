@@ -3,291 +3,308 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
-  ChevronLeft, Ticket as TicketIcon, Calendar,
-  MapPin, ArrowRightLeft, CheckCircle, X,
+  ChevronLeft, MapPin, Lock, MoreHorizontal, Accessibility,
 } from "lucide-react";
-import Link from "next/link";
+import { QRCodeSVG } from "qrcode.react";
 import { Ticket } from "@/lib/data";
-import { getTicketById, reassignTicket } from "@/lib/store";
+import { getTicketById } from "@/lib/store";
 
-function isPast(dateStr: string) {
-  return new Date(dateStr) < new Date();
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function getMatchDateTime(date: string, time: string): Date {
+  const [h, m] = time.split(":").map(Number);
+  const dt = new Date(date);
+  dt.setHours(h, m, 0, 0);
+  return dt;
 }
+
+function isQrVisible(date: string, time: string): boolean {
+  const kickoff = getMatchDateTime(date, time);
+  const now = new Date();
+  const diffHours = (kickoff.getTime() - now.getTime()) / 3_600_000;
+  // show if within 2 hours before kickoff, or match has already started/finished (up to 3h after)
+  return diffHours <= 2;
+}
+
+function isPast(date: string): boolean {
+  return new Date(date) < new Date();
+}
+
+// Derive seat grid info from ticket + seat string
+function getSeatGrid(ticket: Ticket, seatStr: string) {
+  const row = seatStr.replace(/\d/g, "");
+  const seatNum = seatStr.replace(/\D/g, "");
+  const gateNum = ((row.charCodeAt(0) - 65) % 7) + 1;
+  const gate = String.fromCharCode(64 + gateNum);
+  const entrance = ["A", "B", "C", "D", "E", "F", "G", "H"][
+    (row.charCodeAt(0) - 65) % 8
+  ];
+
+  if (ticket.category === 1) {
+    return {
+      rows: [
+        [
+          { label: "ENTRANCE", value: entrance },
+          { label: "HOSPITALITY AREA", value: "Village A" },
+          { label: "GATE", value: gate },
+        ],
+        [
+          { label: "HOSPITALITY AREA", value: "Lounge B" },
+          { label: "SUITE", value: String(100 + (parseInt(seatNum) % 50)) },
+          { label: "ROW", value: row },
+        ],
+        [{ label: "SEAT", value: seatNum }],
+      ],
+      category: "Suite Barstool",
+    };
+  }
+  if (ticket.category === 2) {
+    return {
+      rows: [
+        [
+          { label: "ENTRANCE", value: entrance },
+          { label: "BLOCK", value: String(200 + (parseInt(seatNum) % 30)) },
+          { label: "GATE", value: gate },
+        ],
+        [
+          { label: "ROW", value: row },
+          { label: "SEAT", value: seatNum },
+        ],
+      ],
+      category: "Category 2 — Standard+",
+    };
+  }
+  return {
+    rows: [
+      [
+        { label: "ENTRANCE", value: entrance },
+        { label: "BLOCK", value: String(400 + (parseInt(seatNum) % 40)) },
+        { label: "GATE", value: gate },
+      ],
+      [
+        { label: "ROW", value: row },
+        { label: "SEAT", value: seatNum },
+      ],
+    ],
+    category: ticket.category === 3 ? "Category 3 — Standard" : "Category 4 — Supporter",
+  };
+}
+
+// ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function TicketDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const [ticket, setTicket] = useState<Ticket | null>(null);
-  const [showReassign, setShowReassign] = useState(false);
+  const [seatIdx, setSeatIdx] = useState(0);
+  const [qrVisible, setQrVisible] = useState(false);
 
   useEffect(() => {
     const t = getTicketById(id);
     if (!t) { router.replace("/my-tickets"); return; }
     setTicket(t);
+    setQrVisible(isQrVisible(t.match.date, t.match.time));
   }, [id, router]);
 
-  function refresh() {
-    setTicket(getTicketById(id) ?? null);
-  }
+  // Recheck QR visibility every 30s
+  useEffect(() => {
+    if (!ticket) return;
+    const iv = setInterval(() => {
+      setQrVisible(isQrVisible(ticket.match.date, ticket.match.time));
+    }, 30_000);
+    return () => clearInterval(iv);
+  }, [ticket]);
 
   if (!ticket) return null;
 
   const { match } = ticket;
-  const past = isPast(match.date);
-  const isReassigned = !!ticket.reassignedTo;
+  const currentSeat = ticket.seatNumbers[seatIdx] ?? ticket.seatNumbers[0];
+  const grid = getSeatGrid(ticket, currentSeat);
+  const matchPast = isPast(match.date);
 
   const d = new Date(match.date);
-  const day = d.getDate();
-  const month = d.toLocaleDateString("en-US", { month: "short" }).toUpperCase();
-  const weekday = d.toLocaleDateString("en-US", { weekday: "long" });
-  const fullDate = d.toLocaleDateString("en-US", { day: "numeric", month: "long", year: "numeric" });
+  const dateStr = `${d.getDate()} ${d.toLocaleDateString("en-US", { month: "short" }).toUpperCase()} 26, ${match.time}`;
 
   return (
-    <div className="min-h-screen bg-[#f2f2f7]">
-      <div className="max-w-lg mx-auto">
+    <div className="min-h-screen bg-[#f2f2f7] pb-32">
 
-        {/* Back header */}
-        <div className="flex items-center gap-2 px-4 pt-6 pb-3 bg-[#f2f2f7]">
-          <button
-            onClick={() => router.back()}
-            className="flex items-center gap-1 text-[#cc0000] font-medium text-sm"
-          >
-            <ChevronLeft size={18} strokeWidth={2.5} />
-            My ticket(s)
-          </button>
-        </div>
+      {/* ── Header ── */}
+      <div className="relative flex flex-col items-center pt-5 pb-3 bg-[#f2f2f7]">
+        <button
+          onClick={() => router.back()}
+          className="absolute left-4 top-5 text-gray-800"
+        >
+          <ChevronLeft size={26} strokeWidth={2.5} />
+        </button>
+        <p className="font-bold text-gray-900 text-[0.95rem]">
+          Ticket {seatIdx + 1} of {ticket.quantity}
+        </p>
+        {ticket.quantity > 1 && (
+          <div className="flex gap-1.5 mt-1.5">
+            {ticket.seatNumbers.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setSeatIdx(i)}
+                className={`rounded-full transition-all ${
+                  i === seatIdx ? "w-4 h-1.5 bg-gray-900" : "w-1.5 h-1.5 bg-gray-300"
+                }`}
+              />
+            ))}
+          </div>
+        )}
+      </div>
 
-        {/* Ticket visual card */}
-        <div className="mx-4 bg-white rounded-2xl overflow-hidden shadow-sm mb-4">
-          {/* FIFA graphic + date */}
-          <div className="flex h-44">
-            <div className="flex-1 overflow-hidden relative" style={{ background: "#003f7f" }}>
-              <div
-                className="absolute inset-0"
-                style={{ background: "#cc0000", clipPath: "polygon(0 26%, 100% 12%, 100% 74%, 0 88%)" }}
+      {/* ── QR Code section ── */}
+      <div className="mx-4 mb-4">
+        {qrVisible || matchPast ? (
+          <div className="flex rounded-2xl overflow-hidden shadow-sm bg-white">
+            {/* Teal left bar */}
+            <div className="w-4 shrink-0" style={{ background: "#00c9a7" }} />
+            {/* QR */}
+            <div className="flex-1 flex flex-col items-center justify-center py-6 relative">
+              <QRCodeSVG
+                value={`FIFA-WC2026-${ticket.id}-SEAT${currentSeat}`}
+                size={190}
+                level="H"
+                marginSize={2}
               />
-              <div
-                className="absolute inset-0"
-                style={{ background: "#7dc143", clipPath: "polygon(52% 100%, 100% 52%, 100% 100%)" }}
-              />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-white text-center leading-none select-none">
-                  <p className="font-black text-[10px] tracking-[0.22em] mb-[2px]">FIFA</p>
-                  <p className="font-black text-[12px] tracking-widest leading-tight">WORLD CUP</p>
-                  <p className="font-black text-[32px] tracking-wider leading-tight">2026</p>
+              {matchPast && (
+                <div className="absolute inset-0 bg-white/75 flex items-center justify-center">
+                  <span className="border-2 border-gray-400 text-gray-400 font-black text-lg px-4 py-1 rounded rotate-[-15deg] tracking-widest">
+                    USED
+                  </span>
                 </div>
-              </div>
-            </div>
-            {/* Date column */}
-            <div className="w-[34%] flex flex-col items-center justify-center bg-white shrink-0">
-              <span className="text-[3rem] font-black text-gray-900 leading-none">{day}</span>
-              <span className="text-[12px] font-semibold text-gray-500 uppercase tracking-wide">{month}</span>
-              <span className="text-[2.2rem] font-black text-gray-900 leading-none mt-0.5">26</span>
-              <span className="text-[11px] text-gray-400 mt-0.5">{match.time}</span>
-            </div>
-          </div>
-
-          {/* Match title */}
-          <div className="px-5 pt-4 pb-2 border-t border-gray-100">
-            <p className="text-[0.72rem] font-bold text-gray-400 uppercase tracking-widest mb-1">
-              {ticket.matchNumber}
-            </p>
-            <h2 className="text-gray-900 font-black text-xl leading-tight">
-              {match.homeTeam} vs {match.awayTeam}
-            </h2>
-          </div>
-
-          {/* Details grid */}
-          <div className="px-5 pb-5 space-y-3">
-            <div className="flex items-start gap-3">
-              <Calendar size={16} className="text-gray-400 mt-0.5 shrink-0" />
-              <div>
-                <p className="text-gray-900 font-semibold text-sm">{weekday}, {fullDate}</p>
-                <p className="text-gray-400 text-xs">Kick-off {match.time}</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <MapPin size={16} className="text-gray-400 mt-0.5 shrink-0" />
-              <div>
-                <p className="text-gray-900 font-semibold text-sm">{match.venue}</p>
-                <p className="text-gray-400 text-xs">{match.city}</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <TicketIcon size={16} className="text-gray-400 mt-0.5 shrink-0" />
-              <div>
-                <p className="text-gray-900 font-semibold text-sm">
-                  {ticket.quantity} ticket{ticket.quantity > 1 ? "s" : ""} · Category {ticket.category}
-                </p>
-                <p className="text-gray-400 text-xs">Seats: {ticket.seatNumbers.join(", ")}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Status card */}
-        <div className="mx-4 bg-white rounded-2xl px-5 py-4 shadow-sm mb-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-400 text-xs mb-1">Status</p>
-              {past ? (
-                <span className="text-sm font-bold text-gray-500">Attended</span>
-              ) : isReassigned ? (
-                <span className="text-sm font-bold text-blue-600 flex items-center gap-1">
-                  <ArrowRightLeft size={13} /> Reassigned
-                </span>
-              ) : (
-                <span className="text-sm font-bold text-green-600 flex items-center gap-1">
-                  <CheckCircle size={13} /> Confirmed
-                </span>
               )}
             </div>
-            <div className="text-right">
-              <p className="text-gray-400 text-xs mb-1">Total paid</p>
-              <p className="text-gray-900 font-black text-lg">${ticket.totalPrice.toLocaleString()}</p>
-            </div>
+            {/* Teal right bar */}
+            <div className="w-4 shrink-0" style={{ background: "#00c9a7" }} />
           </div>
-
-          {isReassigned && (
-            <div className="mt-3 pt-3 border-t border-gray-100 flex items-start gap-2">
-              <ArrowRightLeft size={13} className="text-blue-400 mt-0.5 shrink-0" />
-              <p className="text-blue-700 text-xs">
-                Transferred to <strong>{ticket.reassignedTo!.name}</strong> · {ticket.reassignedTo!.email}
+        ) : (
+          <div className="flex rounded-2xl overflow-hidden shadow-sm bg-white">
+            <div className="w-4 shrink-0 bg-gray-200" />
+            <div className="flex-1 flex flex-col items-center justify-center py-8 text-center px-6">
+              <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+                <Lock size={24} className="text-gray-400" />
+              </div>
+              <p className="text-gray-700 font-bold text-sm">QR code not yet available</p>
+              <p className="text-gray-400 text-xs mt-1 leading-relaxed">
+                Your barcode will appear{" "}
+                <span className="font-semibold text-gray-600">2 hours before kick-off</span>
               </p>
             </div>
-          )}
-        </div>
-
-        {/* Reassign button — only for upcoming tickets */}
-        {!past && !showReassign && (
-          <div className="mx-4 mb-4">
-            <button
-              onClick={() => setShowReassign(true)}
-              className="w-full flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-800 font-bold py-3.5 rounded-2xl shadow-sm text-sm hover:bg-gray-50 transition-colors"
-            >
-              <ArrowRightLeft size={15} />
-              {isReassigned ? "Reassign again" : "Reassign ticket"}
-            </button>
+            <div className="w-4 shrink-0 bg-gray-200" />
           </div>
         )}
+      </div>
 
-        {/* Reassign form */}
-        {showReassign && (
-          <ReassignForm
-            ticketId={ticket.id}
-            onCancel={() => setShowReassign(false)}
-            onSuccess={() => { setShowReassign(false); refresh(); }}
-          />
-        )}
+      {/* ── Ticket card ── */}
+      <div className="mx-4 bg-white rounded-2xl shadow-sm overflow-hidden">
 
-        {/* Booking reference */}
-        <div className="mx-4 mb-6 px-5 py-3 bg-white rounded-2xl shadow-sm">
-          <p className="text-gray-400 text-xs mb-1">Booking reference</p>
-          <p className="text-gray-700 font-mono text-sm font-bold">{ticket.id}</p>
-          <p className="text-gray-400 text-xs mt-1">
-            Booked{" "}
-            {new Date(ticket.bookedAt).toLocaleDateString("en-US", {
-              day: "numeric", month: "long", year: "numeric",
-            })}
+        {/* FIFA branding + accessibility */}
+        <div className="relative px-5 pt-5 pb-2 text-center">
+          <div className="absolute top-4 left-4">
+            <Accessibility size={18} className="text-gray-400" />
+          </div>
+          <p className="font-black text-[1.05rem] leading-tight tracking-tight text-gray-900">FIFA</p>
+          <p className="font-black text-[1.05rem] leading-tight tracking-tight text-gray-900">WORLD CUP</p>
+          <p className="font-black text-[1.05rem] leading-tight tracking-tight text-gray-900">2026™</p>
+        </div>
+
+        {/* Match name */}
+        <div className="px-5 pt-2 pb-3 text-center">
+          <h2 className="text-[1.5rem] font-black text-gray-900 leading-tight">
+            {match.homeTeam} vs {match.awayTeam}
+          </h2>
+        </div>
+
+        {/* Date + venue */}
+        <div className="px-5 pb-4 space-y-1.5 text-center">
+          <div className="flex items-center justify-center gap-1.5 text-gray-600 text-[0.85rem]">
+            <span className="text-sm">📅</span>
+            <span className="font-medium">{dateStr}</span>
+          </div>
+          <div className="flex items-center justify-center gap-1.5 text-gray-600 text-[0.85rem]">
+            <MapPin size={13} className="shrink-0" />
+            <span className="font-medium">{match.venue}</span>
+          </div>
+        </div>
+
+        {/* Seat info grid */}
+        <div className="px-4 pb-4 space-y-2">
+          {grid.rows.map((row, ri) => (
+            <div
+              key={ri}
+              className={`grid gap-2 ${
+                row.length === 1
+                  ? "grid-cols-3"
+                  : row.length === 2
+                  ? "grid-cols-2"
+                  : "grid-cols-3"
+              }`}
+            >
+              {row.length === 1 ? (
+                <>
+                  <div />
+                  <SeatCell label={row[0].label} value={row[0].value} />
+                  <div />
+                </>
+              ) : (
+                row.map((cell, ci) => (
+                  <SeatCell key={ci} label={cell.label} value={cell.value} />
+                ))
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Dotted separator */}
+        <div
+          className="mx-4 my-1 border-0 h-px"
+          style={{
+            backgroundImage:
+              "repeating-linear-gradient(to right, #d1d5db 0, #d1d5db 6px, transparent 6px, transparent 12px)",
+          }}
+        />
+
+        {/* Ticket category row */}
+        <div className="px-5 py-4 flex items-center justify-between">
+          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+            Ticket Category
+          </p>
+          <p className="text-sm font-bold text-gray-900 truncate max-w-[55%] text-right">
+            {grid.category}
           </p>
         </div>
 
       </div>
+
+      {/* Floating action button */}
+      <button
+        className="fixed bottom-24 right-4 w-12 h-12 rounded-full flex items-center justify-center shadow-lg z-40"
+        style={{ background: "#4f8ef7" }}
+      >
+        <MoreHorizontal size={22} className="text-white" />
+      </button>
+
     </div>
   );
 }
 
-// ── Reassign Form ─────────────────────────────────────────────────────────────
+// ── Seat Info Cell ────────────────────────────────────────────────────────────
 
-function ReassignForm({
-  ticketId, onCancel, onSuccess,
-}: { ticketId: string; onCancel: () => void; onSuccess: () => void }) {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [errors, setErrors] = useState<{ name?: string; email?: string }>({});
-  const [done, setDone] = useState(false);
-
-  function validate() {
-    const e: { name?: string; email?: string } = {};
-    if (!name.trim()) e.name = "Name is required";
-    if (!email.trim()) e.email = "Email is required";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = "Invalid email";
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  }
-
-  function handleSubmit() {
-    if (!validate()) return;
-    reassignTicket(ticketId, { name: name.trim(), email: email.trim() });
-    setDone(true);
-    setTimeout(onSuccess, 1400);
-  }
-
-  if (done) {
-    return (
-      <div className="mx-4 mb-4 bg-green-50 border border-green-100 rounded-2xl p-5 flex items-center gap-3">
-        <CheckCircle size={20} className="text-green-500 shrink-0" />
-        <p className="text-green-800 text-sm font-semibold">
-          Ticket successfully transferred to <strong>{name}</strong>.
-        </p>
-      </div>
-    );
-  }
-
+function SeatCell({ label, value }: { label: string; value: string }) {
   return (
-    <div className="mx-4 mb-4 bg-white rounded-2xl shadow-sm p-5">
-      <div className="flex items-center justify-between mb-1">
-        <div className="flex items-center gap-2">
-          <ArrowRightLeft size={15} className="text-[#cc0000]" />
-          <p className="text-gray-900 font-black text-base">Reassign Ticket</p>
-        </div>
-        <button onClick={onCancel} className="text-gray-300 hover:text-gray-500">
-          <X size={18} />
-        </button>
-      </div>
-      <p className="text-gray-400 text-xs mb-4">
-        The new holder will receive full ownership of this ticket.
+    <div className="bg-[#f2f2f7] rounded-xl px-2 py-2.5 text-center">
+      <p className="text-[9px] font-black text-[#6b9aff] uppercase tracking-wider leading-none mb-1">
+        {label}
       </p>
-
-      <div className="space-y-3 mb-4">
-        <div>
-          <label className="text-gray-500 text-xs font-medium block mb-1.5">
-            New holder&apos;s full name
-          </label>
-          <input
-            type="text"
-            placeholder="e.g. Maria Gonzalez"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className={`w-full bg-[#f2f2f7] border-0 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 ${
-              errors.name ? "ring-2 ring-red-300" : "focus:ring-[#cc0000]/20"
-            }`}
-          />
-          {errors.name && <p className="text-red-500 text-[11px] mt-1">{errors.name}</p>}
-        </div>
-        <div>
-          <label className="text-gray-500 text-xs font-medium block mb-1.5">
-            New holder&apos;s email address
-          </label>
-          <input
-            type="email"
-            placeholder="e.g. maria@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className={`w-full bg-[#f2f2f7] border-0 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 ${
-              errors.email ? "ring-2 ring-red-300" : "focus:ring-[#cc0000]/20"
-            }`}
-          />
-          {errors.email && <p className="text-red-500 text-[11px] mt-1">{errors.email}</p>}
-        </div>
-      </div>
-
-      <button
-        onClick={handleSubmit}
-        className="w-full bg-[#cc0000] hover:bg-[#b30000] text-white font-bold py-3.5 rounded-xl text-sm transition-colors"
+      <p
+        className={`font-black text-gray-900 leading-none ${
+          value.length > 4 ? "text-base" : "text-[1.5rem]"
+        }`}
       >
-        Confirm Transfer
-      </button>
+        {value}
+      </p>
     </div>
   );
 }
