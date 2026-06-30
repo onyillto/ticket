@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Ticket as TicketIcon, Download, ArrowRightLeft, X, CheckCircle } from "lucide-react";
+import { Ticket as TicketIcon, Download, ArrowRightLeft, X, CheckCircle, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { Ticket } from "@/lib/data";
 import { getTickets, reassignTicket, clearTickets } from "@/lib/store";
@@ -37,80 +37,90 @@ export default function MyTicketsPage() {
   const displayed = tab === "upcoming" ? upcomingTickets : pastTickets;
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-black text-gray-900">My ticket(s)</h1>
-        <button onClick={handleClear} className="text-gray-300 hover:text-gray-400 text-xs transition-colors">
-          Reset demo
+    <div className="max-w-lg mx-auto px-4 pt-8 pb-4">
+      {/* Page title */}
+      <div className="flex items-center justify-between mb-5">
+        <h1 className="text-[2rem] font-black text-gray-900 tracking-tight">My ticket(s)</h1>
+        <button
+          onClick={handleClear}
+          className="text-gray-300 hover:text-gray-400 text-xs transition-colors"
+        >
+          Reset
         </button>
       </div>
 
-      {/* Underline tabs — exactly like FIFA app */}
-      <div className="flex border-b border-gray-200 mb-6">
+      {/* Underline tabs */}
+      <div className="flex border-b border-gray-200 mb-5">
         <button
           onClick={() => setTab("upcoming")}
-          className={`flex items-center gap-2 pb-3 mr-8 text-sm font-bold transition-all relative ${
-            tab === "upcoming" ? "text-gray-900" : "text-gray-400 hover:text-gray-600"
+          className={`relative flex items-center gap-2 pb-3 mr-7 text-[0.9rem] font-bold transition-colors ${
+            tab === "upcoming" ? "text-gray-900" : "text-gray-400"
           }`}
         >
           Upcoming match(es)
-          <span className={`text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center ${
-            tab === "upcoming" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-400"
-          }`}>
+          <span
+            className={`text-[11px] font-bold w-6 h-6 rounded-full flex items-center justify-center ${
+              tab === "upcoming" ? "bg-gray-900 text-white" : "bg-gray-200 text-gray-500"
+            }`}
+          >
             {upcomingTickets.length}
           </span>
           {tab === "upcoming" && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-900 rounded-full" />
+            <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-gray-900 rounded-full" />
           )}
         </button>
+
         <button
           onClick={() => setTab("past")}
-          className={`flex items-center gap-2 pb-3 text-sm font-bold transition-all relative ${
-            tab === "past" ? "text-gray-900" : "text-gray-400 hover:text-gray-600"
+          className={`relative flex items-center gap-2 pb-3 text-[0.9rem] font-bold transition-colors ${
+            tab === "past" ? "text-gray-900" : "text-gray-400"
           }`}
         >
           Past match(es)
-          <span className={`text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center ${
-            tab === "past" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-400"
-          }`}>
+          <span
+            className={`text-[11px] font-bold w-6 h-6 rounded-full flex items-center justify-center ${
+              tab === "past" ? "bg-gray-900 text-white" : "bg-gray-200 text-gray-500"
+            }`}
+          >
             {pastTickets.length}
           </span>
           {tab === "past" && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-900 rounded-full" />
+            <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-gray-900 rounded-full" />
           )}
         </button>
       </div>
 
       {/* FIFA app promo banner */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-4 flex items-center gap-3 mb-6 shadow-sm">
-        <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0">
-          <FifaAppIcon />
-        </div>
+      <div className="flex items-center gap-3 mb-5 p-3 bg-white border border-gray-100 rounded-2xl shadow-sm">
+        <FifaAppIcon />
         <div>
-          <p className="text-gray-900 font-bold text-sm">Get the FIFA World Cup 2026™ App</p>
-          <p className="text-gray-400 text-xs">Your official guide to every match and moment</p>
+          <p className="text-gray-900 font-bold text-sm leading-snug">
+            Get the FIFA World Cup 2026™ App
+          </p>
+          <p className="text-gray-400 text-xs leading-snug">
+            Your official guide to every match and moment
+          </p>
         </div>
       </div>
 
-      {/* Empty states */}
+      {/* Empty state */}
       {displayed.length === 0 && (
-        <div className="text-center py-20">
-          <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
-            <TicketIcon size={28} className="text-gray-300" />
+        <div className="text-center py-16">
+          <div className="w-14 h-14 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
+            <TicketIcon size={24} className="text-gray-300" />
           </div>
-          <p className="text-gray-900 font-bold mb-1">
+          <p className="text-gray-900 font-bold text-sm mb-1">
             {tab === "upcoming" ? "No upcoming tickets" : "No past tickets"}
           </p>
-          <p className="text-gray-400 text-sm mb-6">
+          <p className="text-gray-400 text-xs mb-5">
             {tab === "upcoming"
               ? "Book seats for a match coming up soon."
-              : "Tickets for completed matches will appear here."}
+              : "Tickets for completed matches appear here."}
           </p>
           {tab === "upcoming" && (
             <Link
               href="/matches"
-              className="inline-flex items-center gap-2 bg-[#cc0000] hover:bg-[#b30000] text-white font-bold px-5 py-2.5 rounded-xl text-sm transition-colors"
+              className="inline-flex items-center gap-1.5 bg-[#cc0000] text-white font-bold px-5 py-2.5 rounded-xl text-sm"
             >
               Browse Matches
             </Link>
@@ -136,66 +146,57 @@ export default function MyTicketsPage() {
   );
 }
 
-// ── FIFA Branded Ticket Graphic ───────────────────────────────────────────────
+// ── FIFA WC 2026 ticket graphic (no date inside) ──────────────────────────────
 
-function FifaTicketGraphic({ date, time }: { date: string; time: string }) {
-  const d = new Date(date);
-  const day = d.getDate();
-  const month = d.toLocaleDateString("en-US", { month: "short" }).toUpperCase();
-
+function FifaGraphic() {
   return (
-    <div className="relative w-full h-full overflow-hidden rounded-xl" style={{ background: "#003f7f" }}>
+    <div className="relative w-full h-full overflow-hidden" style={{ background: "#003f7f" }}>
       {/* Red diagonal band */}
       <div
         className="absolute inset-0"
         style={{
           background: "#cc0000",
-          clipPath: "polygon(0 28%, 100% 14%, 100% 72%, 0 86%)",
+          clipPath: "polygon(0 26%, 100% 12%, 100% 74%, 0 88%)",
         }}
       />
-      {/* Green/lime triangle bottom-right */}
+      {/* Green triangle bottom-right */}
       <div
         className="absolute inset-0"
         style={{
-          background: "#6ab04c",
-          clipPath: "polygon(55% 100%, 100% 55%, 100% 100%)",
+          background: "#7dc143",
+          clipPath: "polygon(52% 100%, 100% 52%, 100% 100%)",
         }}
       />
-      {/* Text: FIFA WORLD CUP 2026 */}
+      {/* FIFA WC 2026 text */}
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className="text-white text-center leading-none">
-          <p className="font-black text-[10px] tracking-[0.2em] mb-0.5">FIFA</p>
-          <p className="font-black text-[11px] tracking-widest leading-tight">WORLD CUP</p>
-          <p className="font-black text-[22px] tracking-wider leading-tight">2026</p>
+        <div className="text-white text-center leading-none select-none">
+          <p className="font-black text-[9px] tracking-[0.25em] mb-[2px]">FIFA</p>
+          <p className="font-black text-[10.5px] tracking-widest leading-tight">WORLD CUP</p>
+          <p className="font-black text-[28px] tracking-wider leading-tight">2026</p>
         </div>
-      </div>
-
-      {/* Date overlay — right side of graphic */}
-      <div className="absolute right-0 top-0 bottom-0 w-16 bg-white/90 flex flex-col items-center justify-center gap-0 border-l border-white/20">
-        <span className="text-2xl font-black text-gray-900 leading-none">{day}</span>
-        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">{month}</span>
-        <span className="text-xl font-black text-gray-900 leading-none mt-0.5">
-          &apos;26
-        </span>
-        <span className="text-[10px] font-medium text-gray-400 mt-0.5">{time}</span>
       </div>
     </div>
   );
 }
 
+// ── Small FIFA icon for promo banner ──────────────────────────────────────────
+
 function FifaAppIcon() {
   return (
-    <div className="w-full h-full relative overflow-hidden" style={{ background: "#003f7f" }}>
+    <div
+      className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0"
+      style={{ background: "#003f7f" }}
+    >
       <div
         className="absolute inset-0"
-        style={{ background: "#cc0000", clipPath: "polygon(0 30%, 100% 10%, 100% 70%, 0 90%)" }}
+        style={{ background: "#cc0000", clipPath: "polygon(0 28%, 100% 12%, 100% 72%, 0 88%)" }}
       />
       <div
         className="absolute inset-0"
-        style={{ background: "#6ab04c", clipPath: "polygon(50% 100%, 100% 50%, 100% 100%)" }}
+        style={{ background: "#7dc143", clipPath: "polygon(50% 100%, 100% 50%, 100% 100%)" }}
       />
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-white font-black text-[9px] tracking-widest leading-none text-center">
+        <span className="text-white font-black text-[7px] tracking-widest text-center leading-tight">
           FIFA{"\n"}WC
         </span>
       </div>
@@ -214,78 +215,82 @@ interface CardProps {
   onReassigned: () => void;
 }
 
-function TicketCard({ ticket, isPastMatch, isReassigning, onStartReassign, onCancelReassign, onReassigned }: CardProps) {
+function TicketCard({
+  ticket, isPastMatch, isReassigning,
+  onStartReassign, onCancelReassign, onReassigned,
+}: CardProps) {
   const { match } = ticket;
   const isReassigned = !!ticket.reassignedTo;
 
+  const d = new Date(match.date);
+  const day = d.getDate();
+  const month = d.toLocaleDateString("en-US", { month: "short" }).toUpperCase();
+
   return (
-    <div className={`bg-white border rounded-2xl overflow-hidden shadow-sm transition-all ${
-      isReassigning ? "border-[#cc0000]/40 ring-2 ring-[#cc0000]/10" : "border-gray-200"
-    }`}>
-      {/* Ticket visual — matches FIFA app layout */}
-      <div className="h-28">
-        <FifaTicketGraphic date={match.date} time={match.time} />
-      </div>
-
-      {/* Match info row — below the graphic, like the FIFA app */}
-      <div className="px-4 pt-3 pb-1">
-        <h3 className="text-gray-900 font-black text-base leading-tight">
-          {match.homeTeam} vs {match.awayTeam}
-        </h3>
-        <p className="text-gray-400 text-sm mt-0.5">{match.venue}</p>
-      </div>
-
-      {/* Quantity + actions row */}
-      <div className="px-4 pb-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-gray-700 font-bold text-sm">{ticket.quantity}</span>
-          <TicketIcon size={14} className="text-gray-400" />
-          <span className="text-gray-400 text-xs">Cat. {ticket.category}</span>
-          <span className="text-gray-300">·</span>
-          <span className="text-[#cc0000] font-bold text-sm">${ticket.totalPrice.toLocaleString()}</span>
+    <div
+      className={`bg-white rounded-2xl overflow-hidden shadow-sm border transition-all ${
+        isReassigning ? "border-[#cc0000]/30 ring-2 ring-[#cc0000]/10" : "border-gray-100"
+      }`}
+    >
+      {/* ── Top section: graphic (left) + date (right) ── */}
+      <div className="flex h-36">
+        {/* FIFA graphic — takes ~65% */}
+        <div className="flex-1">
+          <FifaGraphic />
         </div>
 
+        {/* Date column — white, right side, ~35% */}
+        <div className="w-[38%] flex flex-col items-center justify-center bg-white border-l border-gray-100 gap-0 py-2">
+          <span className="text-[2.4rem] font-black text-gray-900 leading-none">{day}</span>
+          <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider leading-tight">
+            {month}
+          </span>
+          <span className="text-[2rem] font-black text-gray-900 leading-none mt-0.5">26</span>
+          <span className="text-[11px] text-gray-400 font-medium leading-tight mt-0.5">
+            {match.time}
+          </span>
+        </div>
+      </div>
+
+      {/* ── Match name + venue row (below graphic) ── */}
+      <div className="px-4 pt-3 pb-2 border-t border-gray-100">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <h3 className="text-gray-900 font-black text-[1rem] leading-tight truncate">
+              {match.homeTeam} vs {match.awayTeam}
+            </h3>
+            <p className="text-gray-400 text-sm mt-0.5 truncate">{match.venue}</p>
+          </div>
+          {/* Qty + ticket icon + chevron — exact FIFA layout */}
+          <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
+            <span className="text-gray-700 font-bold text-sm">{ticket.quantity}</span>
+            <TicketIcon size={15} className="text-gray-500" strokeWidth={1.8} />
+            <ChevronRight size={16} className="text-gray-400" strokeWidth={2} />
+          </div>
+        </div>
+      </div>
+
+      {/* ── Status + reassign row ── */}
+      <div className="px-4 pb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          {/* Status badge */}
           {isPastMatch ? (
-            <span className="text-xs font-bold text-gray-400 bg-gray-100 px-2.5 py-1 rounded-full">
+            <span className="text-xs font-semibold text-gray-400 bg-gray-100 px-2.5 py-1 rounded-full">
               Attended
             </span>
           ) : isReassigned ? (
-            <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full flex items-center gap-1">
+            <span className="text-xs font-semibold text-blue-600 bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-full flex items-center gap-1">
               <ArrowRightLeft size={10} /> Reassigned
             </span>
           ) : (
-            <span className="text-xs font-bold text-green-600 bg-green-50 px-2.5 py-1 rounded-full">
+            <span className="text-xs font-semibold text-green-600 bg-green-50 border border-green-100 px-2.5 py-1 rounded-full">
               ✓ Confirmed
             </span>
           )}
-          <span className="text-gray-300">›</span>
-        </div>
-      </div>
-
-      {/* Seat chips */}
-      <div className="px-4 pb-3 flex flex-wrap gap-1.5">
-        {ticket.seatNumbers.map((seat) => (
-          <span key={seat} className="bg-gray-50 border border-gray-200 rounded px-2 py-0.5 text-xs text-gray-500 font-mono">
-            {seat}
-          </span>
-        ))}
-      </div>
-
-      {/* Reassigned-to info */}
-      {isReassigned && (
-        <div className="mx-4 mb-3 flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
-          <ArrowRightLeft size={12} className="text-blue-400 shrink-0" />
-          <span className="text-blue-700 text-xs">
-            Transferred to <strong>{ticket.reassignedTo!.name}</strong> · {ticket.reassignedTo!.email}
+          <span className="text-[#cc0000] font-bold text-sm">
+            ${ticket.totalPrice.toLocaleString()}
           </span>
         </div>
-      )}
 
-      {/* Footer: ticket ID + actions */}
-      <div className="mx-4 mb-3 pt-3 border-t border-gray-100 flex items-center justify-between">
-        <span className="text-xs text-gray-300 font-mono">{ticket.id}</span>
         <div className="flex items-center gap-3">
           {!isPastMatch && !isReassigning && (
             <button
@@ -303,6 +308,29 @@ function TicketCard({ ticket, isPastMatch, isReassigning, onStartReassign, onCan
         </div>
       </div>
 
+      {/* Seat numbers */}
+      <div className="px-4 pb-3 flex flex-wrap gap-1.5">
+        {ticket.seatNumbers.map((seat) => (
+          <span
+            key={seat}
+            className="bg-gray-50 border border-gray-200 rounded px-2 py-0.5 text-[11px] text-gray-500 font-mono"
+          >
+            {seat}
+          </span>
+        ))}
+      </div>
+
+      {/* Reassigned-to pill */}
+      {isReassigned && (
+        <div className="mx-4 mb-3 flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-xl px-3 py-2">
+          <ArrowRightLeft size={12} className="text-blue-400 shrink-0" />
+          <span className="text-blue-700 text-xs">
+            Transferred to <strong>{ticket.reassignedTo!.name}</strong>{" "}
+            · {ticket.reassignedTo!.email}
+          </span>
+        </div>
+      )}
+
       {/* Inline reassign form */}
       {isReassigning && (
         <ReassignForm
@@ -317,9 +345,9 @@ function TicketCard({ ticket, isPastMatch, isReassigning, onStartReassign, onCan
 
 // ── Reassign Form ─────────────────────────────────────────────────────────────
 
-function ReassignForm({ ticketId, onCancel, onSuccess }: {
-  ticketId: string; onCancel: () => void; onSuccess: () => void;
-}) {
+function ReassignForm({
+  ticketId, onCancel, onSuccess,
+}: { ticketId: string; onCancel: () => void; onSuccess: () => void }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [errors, setErrors] = useState<{ name?: string; email?: string }>({});
@@ -345,7 +373,7 @@ function ReassignForm({ ticketId, onCancel, onSuccess }: {
     return (
       <div className="mx-4 mb-4 bg-green-50 border border-green-100 rounded-xl p-4 flex items-center gap-3">
         <CheckCircle size={18} className="text-green-500 shrink-0" />
-        <p className="text-green-700 text-sm font-medium">
+        <p className="text-green-800 text-sm font-medium">
           Ticket reassigned to <strong>{name}</strong>.
         </p>
       </div>
@@ -354,20 +382,19 @@ function ReassignForm({ ticketId, onCancel, onSuccess }: {
 
   return (
     <div className="mx-4 mb-4 bg-gray-50 border border-gray-200 rounded-xl p-4">
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <ArrowRightLeft size={14} className="text-[#cc0000]" />
+          <ArrowRightLeft size={13} className="text-[#cc0000]" />
           <p className="text-gray-900 font-bold text-sm">Reassign Ticket</p>
         </div>
-        <button onClick={onCancel} className="text-gray-300 hover:text-gray-600 transition-colors">
+        <button onClick={onCancel} className="text-gray-300 hover:text-gray-500">
           <X size={16} />
         </button>
       </div>
       <p className="text-gray-400 text-xs mb-3">
-        Enter the new holder&apos;s details. They will receive this ticket.
+        The new holder will receive ownership of this ticket.
       </p>
-
-      <div className="space-y-3 mb-3">
+      <div className="space-y-2 mb-3">
         <div>
           <input
             type="text"
@@ -375,10 +402,12 @@ function ReassignForm({ ticketId, onCancel, onSuccess }: {
             value={name}
             onChange={(e) => setName(e.target.value)}
             className={`w-full bg-white border rounded-xl px-3 py-2.5 text-gray-900 placeholder-gray-300 text-sm focus:outline-none focus:ring-1 ${
-              errors.name ? "border-red-300 focus:ring-red-300/30" : "border-gray-200 focus:border-[#cc0000]/40 focus:ring-[#cc0000]/15"
+              errors.name
+                ? "border-red-300 focus:ring-red-200"
+                : "border-gray-200 focus:border-[#cc0000]/40 focus:ring-[#cc0000]/10"
             }`}
           />
-          {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+          {errors.name && <p className="text-red-500 text-[11px] mt-1">{errors.name}</p>}
         </div>
         <div>
           <input
@@ -387,13 +416,14 @@ function ReassignForm({ ticketId, onCancel, onSuccess }: {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className={`w-full bg-white border rounded-xl px-3 py-2.5 text-gray-900 placeholder-gray-300 text-sm focus:outline-none focus:ring-1 ${
-              errors.email ? "border-red-300 focus:ring-red-300/30" : "border-gray-200 focus:border-[#cc0000]/40 focus:ring-[#cc0000]/15"
+              errors.email
+                ? "border-red-300 focus:ring-red-200"
+                : "border-gray-200 focus:border-[#cc0000]/40 focus:ring-[#cc0000]/10"
             }`}
           />
-          {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+          {errors.email && <p className="text-red-500 text-[11px] mt-1">{errors.email}</p>}
         </div>
       </div>
-
       <div className="flex gap-2">
         <button
           onClick={handleSubmit}
@@ -403,7 +433,7 @@ function ReassignForm({ ticketId, onCancel, onSuccess }: {
         </button>
         <button
           onClick={onCancel}
-          className="px-4 py-2.5 bg-white border border-gray-200 hover:border-gray-300 text-gray-500 rounded-xl text-sm transition-colors"
+          className="px-4 py-2.5 bg-white border border-gray-200 text-gray-500 rounded-xl text-sm hover:border-gray-300 transition-colors"
         >
           Cancel
         </button>

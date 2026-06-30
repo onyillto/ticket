@@ -47,8 +47,8 @@ export default function BottomNav() {
             </div>
             <div className="divide-y divide-gray-100">
               {[
-                { href: "/", label: "Home" },
                 { href: "/matches", label: "Browse Matches" },
+                { href: "/matches", label: "Buy Tickets" },
               ].map((item) => (
                 <Link
                   key={item.href}
@@ -76,7 +76,7 @@ export default function BottomNav() {
               <Link
                 key={href}
                 href={href}
-                className="flex flex-col items-center gap-1 min-w-[80px]"
+                className="flex flex-col items-center gap-1 min-w-20"
               >
                 <div
                   className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
@@ -95,7 +95,7 @@ export default function BottomNav() {
           {/* More button */}
           <button
             onClick={() => setMoreOpen((v) => !v)}
-            className="flex flex-col items-center gap-1 min-w-[80px]"
+            className="flex flex-col items-center gap-1 min-w-20"
           >
             <div
               className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
