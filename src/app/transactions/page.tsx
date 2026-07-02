@@ -1,8 +1,6 @@
 "use client";
 
-import { CheckCircle, XCircle, Clock, ChevronRight } from "lucide-react";
-
-type TxStatus = "completed" | "pending" | "refunded";
+import { ChevronRight } from "lucide-react";
 
 interface Transaction {
   id: string;
@@ -12,126 +10,99 @@ interface Transaction {
   qty: number;
   category: number;
   amount: number;
-  status: TxStatus;
   reference: string;
 }
 
 const transactions: Transaction[] = [
   {
-    id: "TX-20260610001",
-    date: "2026-06-10T09:30:00Z",
-    match: "TBD vs TBD — Final",
+    id: "TX-20260615001",
+    date: "2026-06-15T10:20:00Z",
+    match: "M83 Portugal vs Croatia — Quarter-Final",
     venue: "MetLife Stadium, NJ",
     qty: 2,
-    category: 1,
-    amount: 9980,
-    status: "completed",
-    reference: "TKT-NEW003",
-  },
-  {
-    id: "TX-20260608001",
-    date: "2026-06-08T10:00:00Z",
-    match: "TBD vs TBD — Semi-Final",
-    venue: "AT&T Stadium, Dallas",
-    qty: 3,
-    category: 2,
-    amount: 5370,
-    status: "completed",
-    reference: "TKT-NEW002",
-  },
-  {
-    id: "TX-20260605001",
-    date: "2026-06-05T16:45:00Z",
-    match: "TBD vs TBD — Quarter-Final",
-    venue: "MetLife Stadium, NJ",
-    qty: 2,
-    category: 1,
-    amount: 3980,
-    status: "completed",
+    category: 3,
+    amount: 1500,
     reference: "TKT-NEW001",
+  },
+  {
+    id: "TX-20260522001",
+    date: "2026-05-22T09:00:00Z",
+    match: "M07 Croatia vs Belgium — Group G",
+    venue: "Arrowhead Stadium, Kansas City",
+    qty: 1,
+    category: 2,
+    amount: 390,
+    reference: "TKT-PAST007",
+  },
+  {
+    id: "TX-20260518001",
+    date: "2026-05-18T13:00:00Z",
+    match: "M06 Morocco vs Japan — Group F",
+    venue: "Hard Rock Stadium, Miami",
+    qty: 2,
+    category: 4,
+    amount: 230,
+    reference: "TKT-PAST006",
+  },
+  {
+    id: "TX-20260515001",
+    date: "2026-05-15T08:30:00Z",
+    match: "M05 USA vs Mexico — Group E",
+    venue: "Rose Bowl, Los Angeles",
+    qty: 3,
+    category: 3,
+    amount: 1170,
+    reference: "TKT-PAST005",
+  },
+  {
+    id: "TX-20260514001",
+    date: "2026-05-14T10:00:00Z",
+    match: "M04 Portugal vs Netherlands — Group D",
+    venue: "Levi's Stadium, San Francisco",
+    qty: 2,
+    category: 2,
+    amount: 900,
+    reference: "TKT-PAST004",
   },
   {
     id: "TX-20260520001",
     date: "2026-05-20T11:00:00Z",
-    match: "Germany vs Spain — Group B",
+    match: "M03 Germany vs Spain — Group B",
     venue: "SoFi Stadium, Los Angeles",
     qty: 2,
     category: 1,
     amount: 1780,
-    status: "completed",
     reference: "TKT-PAST003",
   },
   {
     id: "TX-20260512001",
     date: "2026-05-12T14:30:00Z",
-    match: "France vs England — Group A",
+    match: "M02 France vs England — Group A",
     venue: "AT&T Stadium, Dallas",
     qty: 1,
     category: 3,
     amount: 290,
-    status: "completed",
     reference: "TKT-PAST002",
   },
   {
     id: "TX-20260510001",
     date: "2026-05-10T09:14:00Z",
-    match: "Brazil vs Argentina — Group C",
+    match: "M01 Brazil vs Argentina — Group C",
     venue: "MetLife Stadium, NJ",
     qty: 2,
     category: 2,
     amount: 1180,
-    status: "completed",
     reference: "TKT-PAST001",
   },
-  {
-    id: "TX-20260418001",
-    date: "2026-04-18T13:00:00Z",
-    match: "USA vs Mexico — Group E",
-    venue: "Rose Bowl, Los Angeles",
-    qty: 4,
-    category: 3,
-    amount: 1560,
-    status: "refunded",
-    reference: "TKT-CANCEL01",
-  },
-  {
-    id: "TX-20260415001",
-    date: "2026-04-15T08:22:00Z",
-    match: "Portugal vs Netherlands — Group D",
-    venue: "Levi's Stadium, San Francisco",
-    qty: 1,
-    category: 2,
-    amount: 450,
-    status: "pending",
-    reference: "TKT-PEND001",
-  },
 ];
-
-const statusConfig: Record<TxStatus, { label: string; icon: React.ReactNode; color: string; bg: string }> = {
-  completed: {
-    label: "Completed",
-    icon: <CheckCircle size={13} />,
-    color: "text-green-600",
-    bg: "bg-green-50 border-green-100",
-  },
-  pending: {
-    label: "Pending",
-    icon: <Clock size={13} />,
-    color: "text-amber-600",
-    bg: "bg-amber-50 border-amber-100",
-  },
-  refunded: {
-    label: "Refunded",
-    icon: <XCircle size={13} />,
-    color: "text-gray-400",
-    bg: "bg-gray-50 border-gray-200",
-  },
-};
 
 function groupByMonth(txs: Transaction[]) {
   const groups: Record<string, Transaction[]> = {};
   txs.forEach((tx) => {
-    const key = new Date(tx.date).toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    const key = new Date(tx.date).toLocaleDateString("en-US", {
+      month: "long",
+      year: "numeric",
+    });
     if (!groups[key]) groups[key] = [];
     groups[key].push(tx);
   });
@@ -139,82 +110,97 @@ function groupByMonth(txs: Transaction[]) {
 }
 
 export default function TransactionsPage() {
-  const total = transactions
-    .filter((t) => t.status === "completed")
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  const refunded = transactions
-    .filter((t) => t.status === "refunded")
-    .reduce((sum, t) => sum + t.amount, 0);
-
   const grouped = groupByMonth(transactions);
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
-      <h1 className="text-3xl font-black text-gray-900 mb-6">Transactions</h1>
+    <div className="min-h-screen bg-[#f2f2f7]">
+      <div className="max-w-lg mx-auto px-4 pt-8 pb-6">
 
-      {/* Summary cards */}
-      <div className="grid grid-cols-3 gap-3 mb-8">
-        {[
-          { label: "Total spent", value: `$${total.toLocaleString()}`, color: "text-gray-900" },
-          { label: "Transactions", value: `${transactions.length}`, color: "text-gray-900" },
-          { label: "Refunded", value: `$${refunded.toLocaleString()}`, color: "text-red-500" },
-        ].map((s) => (
-          <div key={s.label} className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
-            <p className={`text-xl font-black ${s.color}`}>{s.value}</p>
-            <p className="text-gray-400 text-xs mt-0.5">{s.label}</p>
+        {/* Title */}
+        <h1 className="text-[2rem] font-black text-gray-900 tracking-tight mb-5">
+          Transactions
+        </h1>
+
+        {/* FIFA promo banner — same as My Tickets */}
+        <div className="flex items-center gap-3 mb-5 p-3 bg-white rounded-2xl shadow-sm">
+          <FifaAppIcon />
+          <div>
+            <p className="text-gray-900 font-bold text-[0.82rem] leading-snug">
+              Get the FIFA World Cup 2026™ App
+            </p>
+            <p className="text-gray-400 text-[0.75rem] leading-snug">
+              Your official guide to every match and moment
+            </p>
           </div>
-        ))}
-      </div>
+        </div>
 
-      {/* Grouped list */}
-      <div className="space-y-6">
-        {Object.entries(grouped).map(([month, txs]) => (
-          <div key={month}>
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">{month}</p>
-            <div className="space-y-2">
-              {txs.map((tx) => {
-                const cfg = statusConfig[tx.status];
-                return (
-                  <div
-                    key={tx.id}
-                    className="bg-white border border-gray-200 rounded-2xl px-4 py-3.5 flex items-center gap-3 shadow-sm hover:shadow transition-shadow cursor-pointer"
-                  >
-                    {/* FIFA ticket thumbnail */}
-                    <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 relative" style={{ background: "#003f7f" }}>
-                      <div className="absolute inset-0" style={{ background: "#cc0000", clipPath: "polygon(0 28%, 100% 14%, 100% 72%, 0 86%)" }} />
-                      <div className="absolute inset-0" style={{ background: "#6ab04c", clipPath: "polygon(55% 100%, 100% 55%, 100% 100%)" }} />
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-white font-black text-[7px] tracking-widest text-center leading-tight">
-                          FIFA{"\n"}WC
-                        </span>
+        {/* Grouped list */}
+        <div className="space-y-5">
+          {Object.entries(grouped).map(([month, txs]) => (
+            <div key={month}>
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 px-1">
+                {month}
+              </p>
+              <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
+                {txs.map((tx, i) => (
+                  <div key={tx.id}>
+                    <div className="px-4 py-3.5 flex items-center gap-3">
+                      {/* FIFA icon thumbnail */}
+                      <FifaAppIcon />
+
+                      <div className="flex-1 min-w-0">
+                        <p className="text-gray-900 font-bold text-sm truncate">{tx.match}</p>
+                        <p className="text-gray-400 text-xs truncate mt-0.5">{tx.venue}</p>
                       </div>
-                    </div>
 
-                    <div className="flex-1 min-w-0">
-                      <p className="text-gray-900 font-bold text-sm truncate">{tx.match}</p>
-                      <p className="text-gray-400 text-xs truncate">{tx.venue}</p>
-                      <p className="text-gray-300 text-xs mt-0.5 font-mono">{tx.reference}</p>
-                    </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-gray-900 font-black text-sm">
+                          ${tx.amount.toLocaleString()}
+                        </p>
+                        <p className="text-gray-400 text-[11px] mt-0.5">
+                          {tx.qty} ticket{tx.qty > 1 ? "s" : ""}
+                        </p>
+                      </div>
 
-                    <div className="text-right shrink-0 ml-2">
-                      <p className={`font-black text-sm ${tx.status === "refunded" ? "text-gray-400 line-through" : "text-gray-900"}`}>
-                        ${tx.amount.toLocaleString()}
-                      </p>
-                      <span className={`inline-flex items-center gap-1 text-xs font-medium border rounded-full px-2 py-0.5 mt-1 ${cfg.color} ${cfg.bg}`}>
-                        {cfg.icon}
-                        {cfg.label}
-                      </span>
+                      <ChevronRight size={16} className="text-gray-300 shrink-0" />
                     </div>
-
-                    <ChevronRight size={16} className="text-gray-300 shrink-0" />
+                    {i < txs.length - 1 && (
+                      <div className="ml-[68px] h-px bg-gray-100" />
+                    )}
                   </div>
-                );
-              })}
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
+
       </div>
+    </div>
+  );
+}
+
+// ── FIFA App Icon (same graphic as My Tickets banner) ─────────────────────────
+
+function FifaAppIcon() {
+  return (
+    <div
+      className="relative w-11 h-11 rounded-xl overflow-hidden shrink-0"
+      style={{ background: "#003f7f" }}
+    >
+      <div
+        className="absolute inset-0"
+        style={{
+          background: "#cc0000",
+          clipPath: "polygon(0 28%, 100% 12%, 100% 72%, 0 88%)",
+        }}
+      />
+      <div
+        className="absolute inset-0"
+        style={{
+          background: "#7dc143",
+          clipPath: "polygon(50% 100%, 100% 50%, 100% 100%)",
+        }}
+      />
     </div>
   );
 }
