@@ -18,7 +18,7 @@ const transactions: Transaction[] = [
     id: "TX-20260615001",
     date: "2026-06-15T10:20:00Z",
     match: "M83 Portugal vs Croatia — Quarter-Final",
-    venue: "MetLife Stadium, NJ",
+    venue: "Toronto Stadium, Toronto",
     qty: 2,
     category: 3,
     amount: 1500,

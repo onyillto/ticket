@@ -6,7 +6,7 @@ import {
   ArrowLeftRight, Trash2, Link2, BadgeInfo, LogOut,
 } from "lucide-react";
 
-const USER_EMAIL = "james.carter@gmail.com";
+const USER_EMAIL = "james.clifford@gmail.com";
 
 interface MenuItem {
   icon: React.FC<{ size?: number; strokeWidth?: number; style?: React.CSSProperties; className?: string }>;
