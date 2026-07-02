@@ -3,13 +3,13 @@
 import { Ticket, matches } from "./data";
 
 const STORAGE_KEY = "wc2026_tickets";
-const SEEDED_KEY = "wc2026_seeded_v2";
+const SEEDED_KEY = "wc2026_seeded_v4";
 
 const dummyTickets: Ticket[] = [
   // ── Past tickets ──────────────────────────────────────────────
   {
     id: "TKT-PAST001",
-    matchNumber: "M537401",
+    matchNumber: "M01",
     matchId: "m1",
     match: matches.find((m) => m.id === "m1")!,
     category: 2,
@@ -22,7 +22,7 @@ const dummyTickets: Ticket[] = [
   },
   {
     id: "TKT-PAST002",
-    matchNumber: "M537408",
+    matchNumber: "M02",
     matchId: "m2",
     match: matches.find((m) => m.id === "m2")!,
     category: 3,
@@ -35,7 +35,7 @@ const dummyTickets: Ticket[] = [
   },
   {
     id: "TKT-PAST003",
-    matchNumber: "M537416",
+    matchNumber: "M03",
     matchId: "m3",
     match: matches.find((m) => m.id === "m3")!,
     category: 1,
@@ -53,7 +53,7 @@ const dummyTickets: Ticket[] = [
   },
   {
     id: "TKT-PAST004",
-    matchNumber: "M537419",
+    matchNumber: "M04",
     matchId: "m4",
     match: matches.find((m) => m.id === "m4")!,
     category: 2,
@@ -66,7 +66,7 @@ const dummyTickets: Ticket[] = [
   },
   {
     id: "TKT-PAST005",
-    matchNumber: "M537421",
+    matchNumber: "M05",
     matchId: "m5",
     match: matches.find((m) => m.id === "m5")!,
     category: 3,
@@ -79,7 +79,7 @@ const dummyTickets: Ticket[] = [
   },
   {
     id: "TKT-PAST006",
-    matchNumber: "M537425",
+    matchNumber: "M06",
     matchId: "m6",
     match: matches.find((m) => m.id === "m6")!,
     category: 4,
@@ -92,7 +92,7 @@ const dummyTickets: Ticket[] = [
   },
   {
     id: "TKT-PAST007",
-    matchNumber: "M537430",
+    matchNumber: "M07",
     matchId: "m7",
     match: matches.find((m) => m.id === "m7")!,
     category: 2,
@@ -106,42 +106,16 @@ const dummyTickets: Ticket[] = [
   // ── Upcoming tickets ──────────────────────────────────────────
   {
     id: "TKT-NEW001",
-    matchNumber: "M537440",
+    matchNumber: "M83",
     matchId: "m8",
     match: matches.find((m) => m.id === "m8")!,
-    category: 1,
+    category: 3,
     quantity: 2,
-    totalPrice: 3980,
+    totalPrice: 1500,
     holderName: "James Carter",
     email: "james.carter@gmail.com",
-    bookedAt: "2026-06-05T16:45:00Z",
-    seatNumbers: ["B8", "B9"],
-  },
-  {
-    id: "TKT-NEW002",
-    matchNumber: "M537448",
-    matchId: "m9",
-    match: matches.find((m) => m.id === "m9")!,
-    category: 2,
-    quantity: 3,
-    totalPrice: 5370,
-    holderName: "James Carter",
-    email: "james.carter@gmail.com",
-    bookedAt: "2026-06-08T10:00:00Z",
-    seatNumbers: ["D14", "D15", "D16"],
-  },
-  {
-    id: "TKT-NEW003",
-    matchNumber: "M537460",
-    matchId: "m10",
-    match: matches.find((m) => m.id === "m10")!,
-    category: 1,
-    quantity: 2,
-    totalPrice: 9980,
-    holderName: "James Carter",
-    email: "james.carter@gmail.com",
-    bookedAt: "2026-06-10T09:30:00Z",
-    seatNumbers: ["E1", "E2"],
+    bookedAt: "2026-06-15T10:20:00Z",
+    seatNumbers: ["D19", "D20"],
   },
 ];
 
